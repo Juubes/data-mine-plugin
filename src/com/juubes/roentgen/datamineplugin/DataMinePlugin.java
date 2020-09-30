@@ -3,6 +3,7 @@ package com.juubes.roentgen.datamineplugin;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.logging.Level;
@@ -19,7 +20,6 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class DataMinePlugin extends JavaPlugin {
@@ -52,13 +52,9 @@ public class DataMinePlugin extends JavaPlugin {
 		getHDS().addDataSourceProperty("cachePrepStmts", "true");
 		getHDS().addDataSourceProperty("prepStmtCacheSize", "250");
 		getHDS().addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-		getHDS().setMaximumPoolSize(200);
-		try {
-			getHDS().getParentLogger().setLevel(Level.ALL);
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
-		
+		getHDS().setMaximumPoolSize(5);
+		getHDS().setConnectionTimeout(5000);
+
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
 
 		// Create database
@@ -69,6 +65,7 @@ public class DataMinePlugin extends JavaPlugin {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 		// Catch every time player moves or changes look direction
 		protocolManager.addPacketListener(new MoveListener(this, ListenerPriority.NORMAL,
 				PacketType.Play.Client.POSITION_LOOK));
@@ -79,6 +76,23 @@ public class DataMinePlugin extends JavaPlugin {
 
 	public HikariDataSource getHDS() {
 		return HDS;
+	}
+
+	private Connection[] reusableConnections = new Connection[3];
+	private int lastUsedIndex = 0;
+
+	public Connection getReusableConnection() {
+		lastUsedIndex = (lastUsedIndex + 1) % reusableConnections.length;
+		try {
+			if (reusableConnections[lastUsedIndex] == null || reusableConnections[lastUsedIndex].isClosed()) {
+				System.out.println("New connection");
+				reusableConnections[lastUsedIndex] = HDS.getConnection();
+				return reusableConnections[lastUsedIndex];
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return reusableConnections[lastUsedIndex];
 	}
 }
 
@@ -99,26 +113,23 @@ class MoveListener extends PacketAdapter {
 		DataMinePlugin pl = (DataMinePlugin) this.plugin;
 
 		Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {
-			try (Connection conn = pl.getHDS().getConnection()) {
-				try (PreparedStatement prep = conn.prepareStatement(
-						"INSERT INTO Move (UUID, X, Y, Z, Yaw, Pitch, HasPos, HasLook, Date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-					prep.setString(1, event.getPlayer().getUniqueId().toString());
-					prep.setFloat(2, p.x);
-					prep.setFloat(3, p.y);
-					prep.setFloat(4, p.z);
-					prep.setFloat(5, p.yaw);
-					prep.setFloat(6, p.pitch);
-					prep.setBoolean(7, p.hasPos);
-					prep.setBoolean(8, p.hasLook);
-					prep.setLong(9, System.currentTimeMillis());
-					prep.execute();
-					conn.close();
-				}
-			} catch (Exception e) {
+			Connection conn = pl.getReusableConnection();
+			try (PreparedStatement prep = conn.prepareStatement(
+					"INSERT INTO Move (UUID, X, Y, Z, Yaw, Pitch, HasPos, HasLook, Date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+				prep.setString(1, event.getPlayer().getUniqueId().toString());
+				prep.setFloat(2, p.x);
+				prep.setFloat(3, p.y);
+				prep.setFloat(4, p.z);
+				prep.setFloat(5, p.yaw);
+				prep.setFloat(6, p.pitch);
+				prep.setBoolean(7, p.hasPos);
+				prep.setBoolean(8, p.hasLook);
+				prep.setLong(9, System.currentTimeMillis());
+				prep.execute();
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		});
-
 	}
 
 	private static class PlayerMovePacket {
