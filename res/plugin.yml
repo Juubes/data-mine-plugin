@@ -1,4 +1,4 @@
-main: com.juubes.datamineplugin.DataMinePlugin
+main: com.juubes.roentgen.datamineplugin.DataMinePlugin
 name: DataMinePlugin
 version: 1.0
 author: Juubes
