@@ -1,4 +1,4 @@
-package com.juubes.roentgen.datamineplugin;
+package com.juubes.roentgen.datamineplugin.listeners;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +13,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.juubes.roentgen.datamineplugin.DataMinePlugin;
 
 public class MoveListener extends PacketAdapter {
 

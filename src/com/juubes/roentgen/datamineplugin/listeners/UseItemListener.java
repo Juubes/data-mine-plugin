@@ -1,4 +1,4 @@
-package com.juubes.roentgen.datamineplugin;
+package com.juubes.roentgen.datamineplugin.listeners;
 
 import java.lang.reflect.Field;
 
@@ -8,6 +8,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.juubes.roentgen.datamineplugin.DataMinePlugin;
 
 public class UseItemListener extends PacketAdapter {
 	public static final int DATA_FORMAT_VERSION = 1;

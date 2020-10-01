@@ -1,4 +1,4 @@
-package com.juubes.roentgen.datamineplugin;
+package com.juubes.roentgen.datamineplugin.listeners;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
@@ -6,6 +6,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.juubes.roentgen.datamineplugin.DataMinePlugin;
 
 public class BlockListener extends PacketAdapter {
 	public static final int DATA_FORMAT_VERSION = 1;

@@ -14,6 +14,9 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
+import com.juubes.roentgen.datamineplugin.listeners.BlockListener;
+import com.juubes.roentgen.datamineplugin.listeners.MoveListener;
+import com.juubes.roentgen.datamineplugin.listeners.UseItemListener;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class DataMinePlugin extends JavaPlugin {
